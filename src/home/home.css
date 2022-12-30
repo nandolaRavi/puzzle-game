@@ -1,0 +1,21 @@
+.Div-1 {
+    border: 2px solid black;
+    width: 100px;
+    border-radius: 4px;
+}
+
+.boat-rigth {
+    margin-left: 800px !important;
+    border: 2px solid black;
+    height: 100px !important;
+    width: 100px;
+    border-radius: 4px;
+}
+
+.boat-left {
+    margin-left: 100px !important;
+    border: 2px solid black;
+    height: 100px !important;
+    width: 100px;
+    border-radius: 4px;
+}
