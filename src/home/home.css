@@ -1,23 +1,32 @@
-.main-container{
+.main-container {
     padding: 10px;
     margin: 20px;
     border: 2px solid black;
     border-radius: 3px;
     width: 50%;
 }
-.container-one{
+
+.container-one {
     width: 100px;
     height: 100px;
     margin-top: 10px;
     margin-left: 30px;
+    border: 1px solid black;
+    border-radius: 3px;
 }
+
 .boat-container {
     width: 100px;
-    height: 100px; 
+    height: 100px;
     justify-content: end !important;
     margin-top: 3px;
     margin-left: auto;
     margin-right: 80px;
-    border: 1px solid  black;
+    border: 1px solid black;
+    border-radius: 4px;
     position: relative;
+}
+
+.entity-icon {
+cursor: pointer;
 }

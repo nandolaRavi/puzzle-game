@@ -1,14 +1,15 @@
+
 export const createEntity = (type) => {
     return {
         type: type,
         id: Math.floor(Math.random() * 100),
     }
 };
-export const createContainer = (direction, postion, type) => {
+
+export const createContainer = (direction, type) => {
     return {
         direction: direction,
-        postion: postion,
-        entitys: [],
+        entity: [],
         type: type
     };
 };
@@ -16,43 +17,49 @@ export const createContainer = (direction, postion, type) => {
 export function createGame() {
     return {
         isGameOver: false,
-        setSubscribe: function (cn) {
-            this.subscribe = cn;
-        },
         subscribe: function () {
             console.log("this is old subscribe");
         },
+        setSubscribe: function (cn) {
+            this.subscribe = cn;
+        },
         removeEntity: function (containerObj, id) {
-            containerObj.entitys = containerObj.entitys.filter((item) => { return item.id !== id });
+            containerObj.entity= containerObj.entity.filter((item) => { return item.id !== id });
             this.subscribe();
         },
 
-        addEntity: function (containerObj, item) {
-            containerObj.entitys.push(item)
+        addEntity: function (containerObj, entityObj) {
+            containerObj.entity.push(entityObj);
             this.subscribe();
         },
 
-        moveBoatContainer: function (containerObj, mountainObject) {
+        moveBoatContainer: function (containerObj) {
             if (containerObj.direction == 'right') {
-                containerObj.direction = 'left';
+                setTimeout(() => {
+                    containerObj.direction = 'left';
+                }, 1500);
             } else {
-                containerObj.direction = 'right';
-            }
-            this.checkBoatStatus(mountainObject);
+                setTimeout(() => {
+                    containerObj.direction = 'right';
+                }, 1500);
+            };
         },
 
-        checkBoatStatus: function (mountainObject) {
-            let personLength = mountainObject.entitys.filter((e) => { return e.type === 'person' })?.length
-            let giantLength = mountainObject.entitys.filter((e) => { return e.type === 'giant' })?.length;
-            if (personLength === 0) {
+        checkContainerStatus: function (mountainObject) {
+            let priestLength = mountainObject.entity.filter((e) => { return e.type === 'priest' }).length
+            let devilLength = mountainObject.entity.filter((e) => { return e.type === 'devil' }).length;
+            if (priestLength === 0) {
                 return;
             };
-            if (personLength < giantLength) {
+            if (devilLength === 0) {
+                return;
+            }
+            if (priestLength < devilLength) {
                 this.isGameOver = true;
             } else {
                 this.isGameOver = false;
             }
             this.subscribe();
         },
-    }
-}
+    };
+};

@@ -1,74 +1,80 @@
-import { IconButton, Tooltip } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
-import { Button, Card } from "react-bootstrap"
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { Button } from "react-bootstrap"
 import { FaUserNurse } from "react-icons/fa";
-
 import { createContainer, createEntity, createGame } from "./home";
 import $ from 'jquery';
 import './home.css';
 
 const myGame = createGame();
-const mountain1 = createContainer('left', 0, 'mountain');
-const mountain2 = createContainer('right', 99, 'mountain');
-const boat = createContainer('right', 97, 'boat');
-mountain2.entitys.push(createEntity('person',),
-    createEntity('person'),
-    createEntity('person'),
-    createEntity('giant'),
-    createEntity('giant'),
-    createEntity('giant'))
+const mountain1 = createContainer('left', 'mountain');
+const mountain2 = createContainer('right', 'mountain');
+const boat = createContainer('right', 'boat');
+mountain2.entity.push(createEntity('priest'),
+    createEntity('priest'),
+    createEntity('devil'),
+    createEntity('devil'),
+    createEntity('priest'),
+    createEntity('devil'));
 
 const Home = () => {
     const [update, setUpdate] = useState("");
+
     useEffect(() => {
         myGame.setSubscribe(() => {
             setUpdate(Math.random().toString());
-        })
+        });
     }, [setUpdate]);
 
     const handleEntity = useCallback((obj, item) => {
-        if (obj.type === 'mountain' && boat.entitys.length < 2) {
-            myGame.removeEntity(obj, item.id);
-            myGame.addEntity(boat, item);
-            return;
-        };
-
-        if (obj.type === 'boat' && obj.direction === 'right') {
-            myGame.removeEntity(obj, item.id);
-            myGame.addEntity(mountain2, item);
-            return;
-        };
-
-        if (obj.type === 'boat' && obj.direction === 'left') {
-            myGame.removeEntity(obj, item.id);
-            myGame.addEntity(mountain1, item);
-        };
-
-    }, [myGame]);
-
-    const moveBoat = useCallback((boatObj) => {
-        if (boatObj.entitys.length !== 2 && boatObj.direction === 'right') {
-            return;
-        };
-        if (boatObj.entitys.length !== 1 && boatObj.direction === 'left') {
-            return;
-        };
-
-        if (boatObj.direction === 'right') {
-            myGame.moveBoatContainer(boatObj, mountain2);
-            if (myGame.isGameOver === true) {
-                return $("#boat_container").stop();
+        if (obj.type === 'mountain') {
+            if (boat.entity.length < 2 && obj.direction === boat.direction) {
+                myGame.removeEntity(obj, item.id);
+                myGame.addEntity(boat, item);
             };
-            return $("#boat_container").animate({ right: '45rem' }, 1500, 'linear');
+        } else {
+            switch (obj.direction) {
+                case 'right': {
+                    myGame.removeEntity(obj, item.id);
+                    myGame.addEntity(mountain2, item);
+                    break;
+                };
+                case 'left': {
+                    myGame.removeEntity(obj, item.id);
+                    myGame.addEntity(mountain1, item);
+                };
+            };
         };
 
-        myGame.moveBoatContainer(boatObj, mountain1);
-        if (myGame.isGameOver == true) {
-            return $("#boat_container").stop();
-        };
-        $("#boat_container").animate({ right: '-=45rem' }, 1500, 'linear');
+    }, []);
 
-    }, [boat, mountain2, mountain1]);
+    const moveContainer = useCallback((boatObj) => {
+        if (boatObj.entity.length === 0) {
+            return;
+        };
+        switch (boatObj.direction) {
+            case 'right': {
+                myGame.moveBoatContainer(boatObj);
+                myGame.checkContainerStatus(mountain2);
+                if (myGame.isGameOver) {
+                    $("#boat-container").stop();
+                    return;
+                };
+                $("#boat-container").animate({ right: '45rem' }, 1500, 'linear');
+                break;
+            };
+            case 'left': {
+                myGame.moveBoatContainer(boatObj);
+                myGame.checkContainerStatus(mountain1);
+                if (myGame.isGameOver) {
+                    $("#boat-container").stop();
+                    return;
+                };
+                $("#boat-container").animate({ right: '-=45rem' }, 1500, 'linear');
+                break;
+            };
+        };
+
+    }, []);
 
     const onRestart = useCallback(() => {
         window.location.reload();
@@ -77,49 +83,57 @@ const Home = () => {
     return (
         <div className="border border-1 w-50 m-5 p-2">
             {
-                myGame.isGameOver && <h5>game over</h5>
+                myGame.isGameOver && <div className="d-flex align-items-center justify-content-start">
+                    <div>
+                        <h5><b>Game over</b></h5>
+                    </div>
+                    <div className="mx-2">
+                        <Button className="p-2 btn btn-danger" onClick={() => onRestart()}>Play Again</Button>
+                    </div>
+                </div>
             }
-            {myGame.isGameOver && <Button className="p-2" onClick={() => onRestart()}>restart</Button>}
+
             <hr />
             <div className="d-flex align-items-center justify-content-between">
-                <div className="container-one border border-1 mx-4">
+
+                <div className="container-one mx-4">
                     {
-                        mountain1.entitys.map((item, index) => (
-                            <>
-                                {item.type == 'person' ?
-                                    <FaUserNurse className="fs-3 text-info p-1 my-2" onClick={() => handleEntity(mountain1, item)} />
-                                    : <FaUserNurse className="fs-3 text-danger p-1 my-2" onClick={() => handleEntity(mountain1, item)} />}
-                            </>
+                        mountain1.entity.map((item, index) => (
+                            <Fragment key={index}>
+                                {item.type === 'priest' ?
+                                    <FaUserNurse className="fs-3 text-info p-1 my-2 entity-icon" onClick={() => handleEntity(mountain1, item)} />
+                                    : <FaUserNurse className="fs-3 text-danger p-1 my-2  entity-icon" onClick={() => handleEntity(mountain1, item)} />}
+                            </Fragment>
                         ))
                     }
                 </div>
-                <div className="border border-1 container-one mx-4">
-                    {
-                        mountain2.entitys.map((item, index) => (
-                            <>
-                                {item.type == 'person' ?
-                                    <FaUserNurse className="fs-3 text-info p-1 my-2" onClick={() => handleEntity(mountain2, item)} />
-                                    : <FaUserNurse className="fs-3 text-danger p-1 my-2" onClick={() => handleEntity(mountain2, item)} />}
-                            </>
 
+                <div className="container-one mx-4">
+                    {
+                        mountain2.entity.map((item, index) => (
+                            <Fragment key={index}>
+                                {item.type === 'priest'
+                                    ? <FaUserNurse className="fs-3 text-info p-1 my-2  entity-icon" onClick={() => handleEntity(mountain2, item)} />
+                                    : <FaUserNurse className="fs-3 text-danger p-1 my-2  entity-icon" onClick={() => handleEntity(mountain2, item)} />}
+                            </Fragment>
                         ))
                     }
                 </div>
             </div>
 
-            <div className="p-2 boat-container border border-1" id="boat_container">
+            <div className="p-2 boat-container" id="boat-container">
                 {
-                    boat.entitys.map((item, index) => (
-                        <>
-                            {item.type == 'person' ?
-                                <FaUserNurse className="fs-3 text-info p-1 my-2" onClick={() => handleEntity(boat, item)} />
-                                : <FaUserNurse className="fs-3 text-danger p-1 my-2" onClick={() => handleEntity(boat, item)} />}
-                        </>
+                    boat.entity.map((item, index) => (
+                        <Fragment key={index}>
+                            {item.type == 'priest'
+                                ? <FaUserNurse className="fs-3 text-info p-1 my-2  entity-icon" onClick={() => handleEntity(boat, item)} />
+                                : <FaUserNurse className="fs-3 text-danger p-1 my-2  entity-icon" onClick={() => handleEntity(boat, item)} />}
+                        </Fragment>
                     ))
                 }
             </div>
             <hr />
-            <Button className="p-2" onClick={() => moveBoat(boat)} id='goBtn'>Go</Button>
+            <Button className="px-3  btn btn-primary" onClick={() => moveContainer(boat)} id='goBtn'><b>Go</b></Button>
         </div>
     )
 }
