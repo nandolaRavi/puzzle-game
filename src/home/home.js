@@ -1,8 +1,9 @@
-
+let lastId = 0;
 export const createEntity = (type) => {
+    lastId++;
     return {
         type: type,
-        id: Math.floor(Math.random() * 100),
+        id: lastId,
     }
 };
 
@@ -10,7 +11,7 @@ export const createContainer = (direction, type) => {
     return {
         direction: direction,
         entity: [],
-        type: type
+        type: type,
     };
 };
 
@@ -24,7 +25,7 @@ export function createGame() {
             this.subscribe = cn;
         },
         removeEntity: function (containerObj, id) {
-            containerObj.entity= containerObj.entity.filter((item) => { return item.id !== id });
+            containerObj.entity = containerObj.entity.filter((item) => { return item.id !== id });
             this.subscribe();
         },
 
@@ -34,31 +35,24 @@ export function createGame() {
         },
 
         moveBoatContainer: function (containerObj) {
-            if (containerObj.direction == 'right') {
-                setTimeout(() => {
-                    containerObj.direction = 'left';
-                }, 1500);
-            } else {
-                setTimeout(() => {
-                    containerObj.direction = 'right';
-                }, 1500);
-            };
+            setTimeout(() => {
+                containerObj.direction = containerObj.direction === 'right' ? 'left' : 'right'
+            }, 1500);
         },
 
         checkContainerStatus: function (mountainObject) {
+            let total = mountainObject.entity.length;
             let priestLength = mountainObject.entity.filter((e) => { return e.type === 'priest' }).length
-            let devilLength = mountainObject.entity.filter((e) => { return e.type === 'devil' }).length;
-            if (priestLength === 0) {
+            let devilLength = total - priestLength;
+            if (priestLength === 0 || devilLength === 0) {
                 return;
             };
-            if (devilLength === 0) {
+            if(total === 6){
+                this.isGameOver =  true;
                 return;
             }
-            if (priestLength < devilLength) {
-                this.isGameOver = true;
-            } else {
-                this.isGameOver = false;
-            }
+            this.isGameOver = priestLength < devilLength;
+           
             this.subscribe();
         },
     };

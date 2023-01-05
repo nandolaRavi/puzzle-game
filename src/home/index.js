@@ -9,6 +9,7 @@ const myGame = createGame();
 const mountain1 = createContainer('left', 'mountain');
 const mountain2 = createContainer('right', 'mountain');
 const boat = createContainer('right', 'boat');
+
 mountain2.entity.push(createEntity('priest'),
     createEntity('priest'),
     createEntity('devil'),
@@ -26,54 +27,32 @@ const Home = () => {
     }, [setUpdate]);
 
     const handleEntity = useCallback((obj, item) => {
-        if (obj.type === 'mountain') {
-            if (boat.entity.length < 2 && obj.direction === boat.direction) {
-                myGame.removeEntity(obj, item.id);
-                myGame.addEntity(boat, item);
-            };
-        } else {
-            switch (obj.direction) {
-                case 'right': {
-                    myGame.removeEntity(obj, item.id);
-                    myGame.addEntity(mountain2, item);
-                    break;
-                };
-                case 'left': {
-                    myGame.removeEntity(obj, item.id);
-                    myGame.addEntity(mountain1, item);
-                };
-            };
+        if (obj.type === 'mountain' && boat.entity.length < 2 && obj.direction === boat.direction) {
+            myGame.removeEntity(obj, item.id);
+            myGame.addEntity(boat, item);
+            return;
         };
-
+        myGame.removeEntity(obj, item.id);
+        let mountains = { right: mountain2, left: mountain1 }
+        let curMountain = mountains[obj.direction] || null;
+        curMountain && myGame.addEntity(curMountain, item);
     }, []);
 
     const moveContainer = useCallback((boatObj) => {
         if (boatObj.entity.length === 0) {
             return;
         };
-        switch (boatObj.direction) {
-            case 'right': {
-                myGame.moveBoatContainer(boatObj);
-                myGame.checkContainerStatus(mountain2);
-                if (myGame.isGameOver) {
-                    $("#boat-container").stop();
-                    return;
-                };
-                $("#boat-container").animate({ right: '45rem' }, 1500, 'linear');
-                break;
-            };
-            case 'left': {
-                myGame.moveBoatContainer(boatObj);
-                myGame.checkContainerStatus(mountain1);
-                if (myGame.isGameOver) {
-                    $("#boat-container").stop();
-                    return;
-                };
-                $("#boat-container").animate({ right: '-=45rem' }, 1500, 'linear');
-                break;
-            };
-        };
 
+        let mountains = { right: mountain2, left: mountain1 }
+        let curMountain = mountains[boatObj.direction] || null;
+        myGame.checkContainerStatus(curMountain);
+        if (myGame.isGameOver) {
+            $("#boat-container").stop();
+            return;
+        };
+        let animationValue = boatObj.direction === 'right' ? '45rem' : '-=45rem';
+        $("#boat-container").animate({ right: animationValue }, 1500, 'linear');
+        myGame.moveBoatContainer(boatObj);
     }, []);
 
     const onRestart = useCallback(() => {
@@ -85,7 +64,7 @@ const Home = () => {
             {
                 myGame.isGameOver && <div className="d-flex align-items-center justify-content-start">
                     <div>
-                        <h5><b>Game over</b></h5>
+                        <h5><b>{mountain1.entity.length == 6 ? 'you are win' : 'Game over'}</b></h5>
                     </div>
                     <div className="mx-2">
                         <Button className="p-2 btn btn-danger" onClick={() => onRestart()}>Play Again</Button>
