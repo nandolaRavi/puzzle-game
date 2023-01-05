@@ -1,80 +1,36 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { Button } from "react-bootstrap"
+import { Button } from "react-bootstrap";
 import { FaUserNurse } from "react-icons/fa";
-import { createContainer, createEntity, createGame } from "./home";
 import $ from 'jquery';
 import './home.css';
-
-const myGame = createGame();
-const mountain1 = createContainer('left', 'mountain');
-const mountain2 = createContainer('right', 'mountain');
-const boat = createContainer('right', 'boat');
-mountain2.entity.push(createEntity('priest'),
-    createEntity('priest'),
-    createEntity('devil'),
-    createEntity('devil'),
-    createEntity('priest'),
-    createEntity('devil'));
+import { useDispatch, useSelector } from "react-redux";
+import { addRemoveEntity, createEntity, moveBoat } from "../redux/boatSlice";
 
 const Home = () => {
-    const [update, setUpdate] = useState("");
+    const dishpatch = useDispatch();
 
-    useEffect(() => {
-        myGame.setSubscribe(() => {
-            setUpdate(Math.random().toString());
-        });
-    }, [setUpdate]);
+    const { mountain2, mountain1, boat, isGameOver, movePx } = useSelector((state) => state.ship);
+    mountain2.entity.push(
+        createEntity('priest'),
+        createEntity('priest'),
+        createEntity('devil'),
+        createEntity('devil'),
+        createEntity('priest'),
+        createEntity('devil')
+    );
 
-    const handleEntity = useCallback((obj, item) => {
-        if (obj.type === 'mountain') {
-            if (boat.entity.length < 2 && obj.direction === boat.direction) {
-                myGame.removeEntity(obj, item.id);
-                myGame.addEntity(boat, item);
-            };
-        } else {
-            switch (obj.direction) {
-                case 'right': {
-                    myGame.removeEntity(obj, item.id);
-                    myGame.addEntity(mountain2, item);
-                    break;
-                };
-                case 'left': {
-                    myGame.removeEntity(obj, item.id);
-                    myGame.addEntity(mountain1, item);
-                };
-            };
-        };
-
-    }, []);
+    const handleEntity = useCallback((obj) => {
+        dishpatch(addRemoveEntity({ obj: obj }))
+    }, [dishpatch]);
 
     const moveContainer = useCallback((boatObj) => {
-        if (boatObj.entity.length === 0) {
+        dishpatch(moveBoat({ boatObj: boatObj }));
+        if (isGameOver) {
+            $("#boat-container").stop();
             return;
         };
-        switch (boatObj.direction) {
-            case 'right': {
-                myGame.moveBoatContainer(boatObj);
-                myGame.checkContainerStatus(mountain2);
-                if (myGame.isGameOver) {
-                    $("#boat-container").stop();
-                    return;
-                };
-                $("#boat-container").animate({ right: '45rem' }, 1500, 'linear');
-                break;
-            };
-            case 'left': {
-                myGame.moveBoatContainer(boatObj);
-                myGame.checkContainerStatus(mountain1);
-                if (myGame.isGameOver) {
-                    $("#boat-container").stop();
-                    return;
-                };
-                $("#boat-container").animate({ right: '-=45rem' }, 1500, 'linear');
-                break;
-            };
-        };
-
-    }, []);
+        $("#boat-container").animate({ right: `${movePx}` }, 10000, 'linear');
+    }, [dishpatch]);
 
     const onRestart = useCallback(() => {
         window.location.reload();
@@ -83,7 +39,7 @@ const Home = () => {
     return (
         <div className="border border-1 w-50 m-5 p-2">
             {
-                myGame.isGameOver && <div className="d-flex align-items-center justify-content-start">
+                isGameOver && <div className="d-flex align-items-center justify-content-start">
                     <div>
                         <h5><b>Game over</b></h5>
                     </div>
@@ -101,8 +57,8 @@ const Home = () => {
                         mountain1.entity.map((item, index) => (
                             <Fragment key={index}>
                                 {item.type === 'priest' ?
-                                    <FaUserNurse className="fs-3 text-info p-1 my-2 entity-icon" onClick={() => handleEntity(mountain1, item)} />
-                                    : <FaUserNurse className="fs-3 text-danger p-1 my-2  entity-icon" onClick={() => handleEntity(mountain1, item)} />}
+                                    <FaUserNurse className="fs-3 text-info p-1 my-2 entity-icon" onClick={() => handleEntity(item)} />
+                                    : <FaUserNurse className="fs-3 text-danger p-1 my-2  entity-icon" onClick={() => handleEntity(item)} />}
                             </Fragment>
                         ))
                     }
@@ -113,8 +69,8 @@ const Home = () => {
                         mountain2.entity.map((item, index) => (
                             <Fragment key={index}>
                                 {item.type === 'priest'
-                                    ? <FaUserNurse className="fs-3 text-info p-1 my-2  entity-icon" onClick={() => handleEntity(mountain2, item)} />
-                                    : <FaUserNurse className="fs-3 text-danger p-1 my-2  entity-icon" onClick={() => handleEntity(mountain2, item)} />}
+                                    ? <FaUserNurse className="fs-3 text-info p-1 my-2  entity-icon" onClick={() => handleEntity(item)} />
+                                    : <FaUserNurse className="fs-3 text-danger p-1 my-2  entity-icon" onClick={() => handleEntity(item)} />}
                             </Fragment>
                         ))
                     }
@@ -126,8 +82,8 @@ const Home = () => {
                     boat.entity.map((item, index) => (
                         <Fragment key={index}>
                             {item.type == 'priest'
-                                ? <FaUserNurse className="fs-3 text-info p-1 my-2  entity-icon" onClick={() => handleEntity(boat, item)} />
-                                : <FaUserNurse className="fs-3 text-danger p-1 my-2  entity-icon" onClick={() => handleEntity(boat, item)} />}
+                                ? <FaUserNurse className="fs-3 text-info p-1 my-2  entity-icon" onClick={() => handleEntity(item)} />
+                                : <FaUserNurse className="fs-3 text-danger p-1 my-2  entity-icon" onClick={() => handleEntity(item)} />}
                         </Fragment>
                     ))
                 }
